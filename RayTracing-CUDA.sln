@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracing-CUDA", "RayTracing-CUDA.vcxproj", "{7AF626DC-31F6-4B63-B2F7-EADE7E47251A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracing-CUDA", "RayTracing-CUDA.vcxproj", "{28FDA789-D2BA-4AA5-9BD7-CFB03D7791FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7AF626DC-31F6-4B63-B2F7-EADE7E47251A}.Debug|x64.ActiveCfg = Debug|x64
-		{7AF626DC-31F6-4B63-B2F7-EADE7E47251A}.Debug|x64.Build.0 = Debug|x64
-		{7AF626DC-31F6-4B63-B2F7-EADE7E47251A}.Release|x64.ActiveCfg = Release|x64
-		{7AF626DC-31F6-4B63-B2F7-EADE7E47251A}.Release|x64.Build.0 = Release|x64
+		{28FDA789-D2BA-4AA5-9BD7-CFB03D7791FC}.Debug|x64.ActiveCfg = Debug|x64
+		{28FDA789-D2BA-4AA5-9BD7-CFB03D7791FC}.Debug|x64.Build.0 = Debug|x64
+		{28FDA789-D2BA-4AA5-9BD7-CFB03D7791FC}.Release|x64.ActiveCfg = Release|x64
+		{28FDA789-D2BA-4AA5-9BD7-CFB03D7791FC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F824A9A6-708D-4B1F-A5B8-5E76185A8FF4}
+		SolutionGuid = {CDAD82CF-A22F-40C4-ACD3-DD24BDECAE9B}
 	EndGlobalSection
 EndGlobal
