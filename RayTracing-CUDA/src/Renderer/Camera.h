@@ -9,9 +9,10 @@ namespace RayTracing
 	{
 	public:
 		Camera(float FOV, float nearClip, float farClip, int viewportWidth, int viewportHeight);
+		~Camera();
 
 		inline const glm::vec3& GetOrigin() const { return m_Position; }
-		inline const std::vector<glm::vec3>& GetRayDirections() const { return m_RayDirections; }
+		inline const glm::vec3* GetRayDirections() const { return m_RayDirections; }
 
 		void SetPosition(glm::vec3 position) { m_Position = position;  calculateViewMatrix(); calculateRayDirections();}
 	private:
@@ -23,7 +24,8 @@ namespace RayTracing
 		glm::vec3 m_Direction{ 0.0f, 0.0f, -1.0f };
 		//glm::mat4 m_Transform;
 
-		std::vector<glm::vec3> m_RayDirections;
+		//std::vector<glm::vec3> m_RayDirections;
+		glm::vec3* m_RayDirections;
 
 		glm::mat4 m_ViewMatrix;
 		glm::mat4 m_ProjectionMatrix;

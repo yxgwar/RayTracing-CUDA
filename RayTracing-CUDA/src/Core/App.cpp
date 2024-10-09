@@ -81,10 +81,14 @@ namespace RayTracing
 
 		auto start = std::chrono::high_resolution_clock::now();
 		m_Camera.SetPosition({ 0.0f, 0.0f, 3.0f });
-		Render::StartRendering(m_Scene, m_Camera, image, m_Width, m_Height, m_Channels);
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> duration = end - start;
-		std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
+		std::cout << "Camera Time taken: " << duration.count() << " seconds" << std::endl;
+
+		Render::StartRendering(m_Scene, m_Camera, image, m_Width, m_Height, m_Channels);
+		auto end1 = std::chrono::high_resolution_clock::now();
+		duration = end1 - end;
+		std::cout << "Render Time taken: " << duration.count() << " seconds" << std::endl;
 
 		RAY_INFO("Start Generating image!");
 		if (image.GenerateImage())
