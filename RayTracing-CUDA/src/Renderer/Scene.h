@@ -14,16 +14,18 @@ namespace RayTracing
 		Scene() = default;
 		~Scene();
 
-		void AddObjects(std::shared_ptr<Sphere> sphere) { m_Objects.push_back(sphere); }
-		void AddMaterials(std::shared_ptr<Material> material) { m_Material.push_back(material); }
+		void AddObjects(Sphere* sphere) { m_Objects.push_back(sphere); }
+		void AddMaterials(Material* material) { m_Material.push_back(material); }
 
-		inline int LastMaterial() { return m_Material.size() - 1; }
+		inline int LastMaterial() { return (int)m_Material.size() - 1; }
+		inline const std::vector<Hittable*> GetObjects() const { return m_Objects; }
+		inline const std::vector<Material*> GetMaterial() const { return m_Material; }
 		//inline const std::vector<std::shared_ptr<Hittable>>& GetObjects() const { return m_Objects; }
 
-		bool IsHit(const Ray& ray, HitData& hitData);
-		bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color) { return m_Material[hitData.index]->Scatter(ray, hitData, color); }
+		bool IsHit(Ray& ray, HitData& hitData);
+		bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) { return m_Material[hitData.index]->Scatter(ray, hitData, color, rand); }
 	private:
-		std::vector<std::shared_ptr<Hittable>> m_Objects;
-		std::vector<std::shared_ptr<Material>> m_Material;
+		std::vector<Hittable*> m_Objects;
+		std::vector<Material*> m_Material;
 	};
 }

@@ -1,99 +1,118 @@
 #include "Render.h"
 #include "RayMath.h"
 #include "Material.h"
-#include <thread>
+#include "Core/CheckCudaError.h"
 
 namespace RayTracing
 {
-	void Render::StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels)
+	__device__ bool IsHit(Ray& ray, HitData& hitData, Hittable** objects, int size)
 	{
-		glm::vec3 rayOrigin = camera.GetOrigin();
-		int samplers = 100;
-#if 1
-		std::size_t num_threads = std::thread::hardware_concurrency();
-		std::vector<std::thread> threads;
-		int total = width * height;
-		int step = total / num_threads;
-		for (int th = 0; th < num_threads; th++)
+		HitData temp;
+		bool isHit = false;
+		float mint = FLT_MAX;
+		for (int i = 0; i < size; i++)
 		{
-			threads.emplace_back([&, th]()
+			if (objects[i]->IsHit(ray, temp))
+			{
+				isHit = true;
+				if (temp.t < mint)
 				{
-					Ray ray;
-					ray.origin = rayOrigin;
-					int start = th * step;
-					int end = (th == num_threads - 1) ? total : (th + 1) * step;
-					for (int k = start; k < end; k++) {
-						int i = k % width;
-						int j = k / width;
-						glm::vec4 colorS(0.0f);
-						for (int s = 0; s < samplers; s++)
-						{
-							int x = RayMath::clamp(i + RayMath::RandomI(), 0, width - 1);
-							int y = RayMath::clamp(j + RayMath::RandomI(), 0, height - 1);
-							ray.direction = camera.GetRayDirections()[x + y * width];
-							colorS += perPixel(scene, ray);
-						}
-
-						glm::vec4 color = colorS / float(samplers);
-						color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));//将颜色限制在0~255
-						image.SetPixelData(color, k);
-					}
-				});
-		}
-
-		for (auto& thread : threads)
-			thread.join();
-#else
-		Ray ray;
-		ray.origin = rayOrigin;
-
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				glm::vec4 colorS(0.0f);
-				for (int s = 0; s < samplers; s++)
-				{
-					int x = RayMath::clamp(i + RayMath::RandomI(), 0, width - 1);
-					int y = RayMath::clamp(j + RayMath::RandomI(), 0, height - 1);
-					ray.direction = camera.GetRayDirections()[x + y * width];
-					colorS += perPixel(scene, ray);
+					hitData = temp;
+					mint = temp.t;
 				}
-
-				glm::vec4 color = colorS / float(samplers);
-				color = glm::clamp(color, glm::vec4(0.0f), glm::vec4(1.0f));//将颜色限制在0~255
-				image.SetPixelData(color, i + j * width);
 			}
 		}
-#endif
+		return isHit;
 	}
 
-	glm::vec4 Render::perPixel(Scene& scene, Ray& ray)
+	__device__ glmcu::vec4 perPixel(Hittable** hitcu, int sizehit, Material** matcu, int sizemat, Ray& ray, curandState rand)
 	{
 		HitData hitData;
 		Ray traceRay(ray);
 
-		glm::vec3 color(1.0f);
+		glmcu::vec3 color(1.0f);
 		int bounces = 10;
 		for (size_t i = 0; i < bounces; i++)
 		{
-			if (scene.IsHit(traceRay, hitData))
+			if(IsHit(traceRay, hitData, hitcu, sizehit))
 			{
 				glm::vec3 rColor;
-				if (scene.Scatter(traceRay, hitData, rColor))
+				if(matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
 					color *= rColor;
 				else
 				{
-					color = glm::vec3(0.0f);
+					color = glmcu::vec3(0.0f);
 					break;
 				}
 			}
 			else
 			{
-				glm::vec3 dir = traceRay.direction;
-				float a = (dir.y + 1.0f) * 0.5f;
-				color *= (1.0f - a) * glm::vec3(1.0f) + a * glm::vec3(0.3f, 0.5f, 1.0f);
+				glmcu::vec3 dir = traceRay.direction;
+				float a = (dir[1] + 1.0f) * 0.5f;
+				color *= (1.0f - a) * glmcu::vec3(1.0f) + a * glmcu::vec3(0.3f, 0.5f, 1.0f);
 				break;
 			}
 		}
 		return { color, 1.0f };
+		return { 0.0f };
+	}
+
+	__global__ void render(Hittable** hitcu, int sizehit, Material** matcu, int sizemat, glm::vec3* rd, unsigned char* pix, Ray ray, int width, int height, int samplers)
+	{
+		int index = blockIdx.x * blockDim.x + threadIdx.x;
+		int stride = blockDim.x * gridDim.x;
+		for (int k = index; k < width * height; k += stride) {
+			curandState rand;
+			curand_init(1984 + k, 0, 0, &rand);
+			int i = k % width;
+			int j = k / width;
+			glmcu::vec4 colorS(0.0f);
+			for (int s = 0; s < samplers; s++)
+			{
+				int x = clamp(i + randomi(rand), 0, width - 1);
+				int y = clamp(j + randomi(rand), 0, height - 1);
+				ray.direction = rd[x + y * width];
+				colorS += perPixel(hitcu, sizehit, matcu, sizemat, ray, rand);
+			}
+
+			glmcu::vec4 color = colorS / float(samplers);
+			color = clamp(color, glmcu::vec4(0.0f), glmcu::vec4(1.0f));//将颜色限制在0~255
+			pix[4 * k] = color[0];
+			pix[4 * k + 1] = color[1];
+			pix[4 * k + 2] = color[2];
+			pix[4 * k + 3] = color[3];
+		}
+	}
+
+	void Render::StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels)
+	{
+		glm::vec3 rayOrigin = camera.GetOrigin();
+		int samplers = 100;
+		Ray ray;
+		ray.origin = rayOrigin;
+
+
+		Hittable** hitcu;
+		int sizehit = scene.GetObjects().size() * sizeof(Hittable*);
+		checkCudaErrors(cudaMallocManaged(&hitcu, sizehit));
+		checkCudaErrors(cudaMemcpy(hitcu, scene.GetObjects().data(), sizehit, cudaMemcpyHostToDevice));
+
+		Material** matcu;
+		int sizemat = scene.GetObjects().size() * sizeof(Material*);
+		checkCudaErrors(cudaMallocManaged(&matcu, sizemat));
+		checkCudaErrors(cudaMemcpy(matcu, scene.GetMaterial().data(), sizemat, cudaMemcpyHostToDevice));
+
+		unsigned char* pix;
+		checkCudaErrors(cudaMallocManaged(&pix, width * height * channels * sizeof(unsigned char)));
+
+		render << <1, 1 >> > (hitcu, sizehit, matcu, sizemat, camera.GetRayDirections(), pix, ray, width, height, samplers);
+		checkCudaErrors(cudaGetLastError());
+		checkCudaErrors(cudaDeviceSynchronize());
+
+		checkCudaErrors(cudaMemcpy(image.GeiImage(), pix, width * height * channels * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		checkCudaErrors(cudaFree(hitcu));
+		checkCudaErrors(cudaFree(matcu));
+		checkCudaErrors(cudaFree(pix));
 	}
 }

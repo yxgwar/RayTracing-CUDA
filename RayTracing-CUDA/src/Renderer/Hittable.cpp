@@ -8,9 +8,9 @@ namespace RayTracing
 	{
 	}
 
-	bool Sphere::IsHit(const Ray& ray, HitData& hitData)
+	__device__ bool Sphere::IsHit(Ray& ray, HitData& hitData)
 	{
-		glm::vec3 oc = ray.origin - m_Position;
+		glmcu::vec3 oc = ray.origin - glmcu::vec3(m_Position);
 
 		/*
 		* (x - P.x)^2 + (y - P.y)^2 + (z - P.z)^2 = r^2
@@ -21,9 +21,9 @@ namespace RayTracing
 		* c = (rO - P)(rO - P) - r^2
 		*/
 
-		float a = glm::dot(ray.direction, ray.direction);
-		float b2 = glm::dot(oc, ray.direction);
-		float c = glm::dot(oc, oc) - m_Radius * m_Radius;
+		float a = glmcu::dot(ray.direction, ray.direction);
+		float b2 = glmcu::dot(oc, ray.direction);
+		float c = glmcu::dot(oc, oc) - m_Radius * m_Radius;
 
 		float discriminant = b2 * b2 - a * c;
 
@@ -34,8 +34,8 @@ namespace RayTracing
 			float t = (-b2 - glm::sqrt(discriminant)) / a;
 			if (t < 0)
 				return false;
-			glm::vec3 hitPosition = ray.origin + ray.direction * t;
-			glm::vec3 normal = glm::normalize(hitPosition - m_Position);
+			glmcu::vec3 hitPosition = ray.origin + ray.direction * t;
+			glmcu::vec3 normal = glmcu::normalize(hitPosition - glmcu::vec3(m_Position));
 
 			hitData.hitPosition = hitPosition;
 			hitData.normal = normal;

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include "Math/Mathcu.h"
 
 namespace RayTracing
 {
 	struct Ray
 	{
-		glm::vec3 origin{ 0.0f };
-		glm::vec3 direction{ 1.0f };
+		glmcu::vec3 origin{ 0.0f };
+		glmcu::vec3 direction{ 1.0f };
 	};
 }

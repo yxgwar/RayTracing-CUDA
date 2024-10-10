@@ -8,8 +8,8 @@ namespace RayTracing
 	
 	struct HitData
 	{
-		glm::vec3 hitPosition;
-		glm::vec3 normal;
+		glmcu::vec3 hitPosition;
+		glmcu::vec3 normal;
 		float t;
 		int index;
 	};
@@ -18,7 +18,7 @@ namespace RayTracing
 	{
 	public:
 		virtual ~Hittable() = default;
-		virtual bool IsHit(const Ray& ray, HitData& hitData) = 0;
+		__device__ virtual bool IsHit(Ray& ray, HitData& hitData) = 0;
 	};
 
 	class Sphere :public Hittable
@@ -27,7 +27,7 @@ namespace RayTracing
 		Sphere(const glm::vec3& position, float radius, int index);
 		~Sphere() = default;
 
-		bool IsHit(const Ray& ray, HitData& hitData) override;
+		__device__ bool IsHit(Ray& ray, HitData& hitData) override;
 	private:
 		glm::vec3 m_Position{ 0.0f };
 		float m_Radius = 0.5f;

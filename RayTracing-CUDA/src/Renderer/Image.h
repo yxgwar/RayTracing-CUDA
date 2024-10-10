@@ -11,6 +11,7 @@ namespace RayTracing
 
 		void SetPixelData(glm::vec4 color, int position);
 		bool GenerateImage();
+		unsigned char* GeiImage() { return m_Image; }
 	private:
 		int m_Width, m_Height, m_Channels;
 		int size;

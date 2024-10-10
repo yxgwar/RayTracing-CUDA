@@ -1,34 +1,46 @@
 #pragma once
+
+#include "Math/Mathcu.h"
 #include <glm/glm.hpp>
-#include <random>
+#include <curand_kernel.h>
 
 namespace RayTracing
 {
-	class RayMath
+	//return float 0~1
+	static __device__ float randomf(curandState state)
 	{
-	public:
-		static void Init()
+		return curand_uniform(&state);
+	}
+
+	//return vec3 -1~1
+	static __device__ glmcu::vec3 randomv(curandState state)
+	{
+		while (true)
 		{
-			std::random_device rd; // 随机设备
-			gen = std::mt19937(rd());
-			disf = std::uniform_real_distribution<>(-1.0, 1.0);// 均匀分布在 [-1.0, 1.0] 范围内的双浮点数
-			disi = std::uniform_int_distribution<>(-1, 1); // 均匀分布在 [-1, 1] 范围内的整数
+			glmcu::vec3 rv = { curand_uniform(&state), curand_uniform(&state), curand_uniform(&state) };
+			float l = rv.length();
+			if (l <= 1.0f && l >= 1e-6)
+				return rv / l;
 		}
+	}
 
-		//返回0~1的浮点数
-		static float Randomf() { return disf(gen) * 0.5f + 0.5f; }
+	//return int -1~1
+	static __device__ int randomi(curandState state)
+	{
+		float r = curand_uniform(&state);
+		if (r < 0.33f)
+			return -1;
+		else if (r < 0.66f)
+			return 0;
+		else return 1;
+	}
 
-		//返回-1~1的三维向量
-		static glm::vec3 RandomVec();
-
-		//返回-1~1的整数
-		static int RandomI() { return disi(gen); }
-
-		static int clamp(int a, int min, int max);
-
-	private:
-		static thread_local std::mt19937 gen;
-		static std::uniform_real_distribution<> disf;
-		static std::uniform_int_distribution<> disi;
-	};
+	static __device__ int clamp(int a, int min, int max)
+	{
+		if (a < min)
+			return min;
+		if (a > max)
+			return max;
+		return a;
+	}
 }

@@ -4,10 +4,18 @@ namespace RayTracing
 {
 	Scene::~Scene()
 	{
+		for (int i = 0; i < m_Objects.size(); i++) 
+			delete m_Objects[i];
 		m_Objects.clear();
+
+		for (int i = 0; i < m_Material.size(); i++)
+			delete m_Material[i];
+		m_Material.clear();
 	}
 
-	bool Scene::IsHit(const Ray& ray, HitData& hitData)
+	
+
+	__device__ bool Scene::IsHit(Ray& ray, HitData& hitData)
 	{
 		HitData temp;
 		bool isHit = false;

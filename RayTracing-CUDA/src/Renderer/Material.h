@@ -1,5 +1,6 @@
 #pragma once
 #include "Hittable.h"
+#include <curand_kernel.h>
 
 namespace RayTracing
 {
@@ -8,7 +9,7 @@ namespace RayTracing
 	public:
 		virtual ~Material() = default;
 
-		virtual bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color) = 0;
+		__host__ __device__ virtual bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) = 0;
 	};
 
 	class Metal :public Material
@@ -17,7 +18,7 @@ namespace RayTracing
 		Metal(const glm::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
 		~Metal() = default;
 
-		bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color) override;
+		__host__ __device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
 	private:
 		glm::vec3 m_Albedo;
 		float m_Fuzz;
@@ -29,7 +30,7 @@ namespace RayTracing
 		Lambertian(const glm::vec3& albedo) :m_Albedo(albedo) {}
 		~Lambertian() = default;
 
-		bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color) override;
+		__host__ __device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
 	private:
 		glm::vec3 m_Albedo;
 	};
@@ -40,7 +41,7 @@ namespace RayTracing
 		Dielectric(float refractionIndex) :m_RefractionIndex(refractionIndex) {}
 		~Dielectric() = default;
 
-		bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color) override;
+		__host__ __device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
 	private:
 		float m_RefractionIndex;
 	};

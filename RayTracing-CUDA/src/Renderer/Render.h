@@ -12,7 +12,5 @@ namespace RayTracing
 	{
 	public:
 		static void StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels);
-	private:
-		static glm::vec4 perPixel(Scene& scene, Ray& ray);
 	};
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <vector>
 
 namespace RayTracing
 {
@@ -12,7 +11,7 @@ namespace RayTracing
 		~Camera();
 
 		inline const glm::vec3& GetOrigin() const { return m_Position; }
-		inline const glm::vec3* GetRayDirections() const { return m_RayDirections; }
+		inline glm::vec3* GetRayDirections() const { return m_RayDirections; }
 
 		void SetPosition(glm::vec3 position) { m_Position = position;  calculateViewMatrix(); calculateRayDirections();}
 	private:

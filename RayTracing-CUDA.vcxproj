@@ -99,12 +99,12 @@
   <ItemGroup>
     <ClCompile Include="RayTracing-CUDA\src\Core\App.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Core\Entry.cpp" />
+    <ClCompile Include="RayTracing-CUDA\src\Math\Mathcu.cpp" />
     <CudaCompile Include="RayTracing-CUDA\src\Renderer\Camera.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Hittable.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Image.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Material.cpp" />
-    <ClCompile Include="RayTracing-CUDA\src\Renderer\RayMath.cpp" />
-    <ClCompile Include="RayTracing-CUDA\src\Renderer\Render.cpp" />
+    <CudaCompile Include="RayTracing-CUDA\src\Renderer\Render.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Scene.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
