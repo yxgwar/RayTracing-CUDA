@@ -1,18 +1,50 @@
+#pragma once
 #include "Material.h"
-#include "RayMath.h"
-#include "Core/CheckCudaError.h"
-#include "Math/Mathcu.h"
 
 namespace RayTracing
 {
-	static __host__ __device__ float reflectance(float cosine, float refraction_index) {
+	class Metal :public Material
+	{
+	public:
+		__device__ Metal(const glm::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
+		__device__ ~Metal() = default;
+
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+	private:
+		glm::vec3 m_Albedo;
+		float m_Fuzz;
+	};
+
+	class Lambertian :public Material
+	{
+	public:
+		__device__ Lambertian(const glm::vec3& albedo) :m_Albedo(albedo) {}
+		__device__ ~Lambertian() = default;
+
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+	private:
+		glm::vec3 m_Albedo;
+	};
+
+	class Dielectric :public Material
+	{
+	public:
+		__device__ Dielectric(float refractionIndex) :m_RefractionIndex(refractionIndex) {}
+		__device__ ~Dielectric() = default;
+
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+	private:
+		float m_RefractionIndex;
+	};
+
+	static __device__ float reflectance(float cosine, float refraction_index) {
 		// Use Schlick's approximation for reflectance.
 		auto r0 = (1 - refraction_index) / (1 + refraction_index);
 		r0 = r0 * r0;
 		return r0 + (1 - r0) * std::pow((1 - cosine), 5);
 	}
 
-	__host__ __device__ static glmcu::vec3 refract(glmcu::vec3& direction, glmcu::vec3& normal, float refractionIndex)
+	static __device__ glmcu::vec3 refract(glmcu::vec3& direction, glmcu::vec3& normal, float refractionIndex)
 	{
 		//R'_垂直 = eta / eta' * (R + cos(theta) * n)
 		//R'_平行 = -sqrt(1 - R'_垂直^2) * n
@@ -22,7 +54,7 @@ namespace RayTracing
 	}
 
 	//镜面反射
-	__host__ __device__ bool Metal::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Metal::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
 	{
 		//OUT = IN - 2*(IN*N)*N
 		ray.direction = glmcu::normalize(glmcu::reflect(ray.direction, hitData.normal) + randomv(rand) * m_Fuzz);
@@ -32,7 +64,7 @@ namespace RayTracing
 	}
 
 	//漫反射
-	__host__ __device__ bool Lambertian::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Lambertian::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
 	{
 		glmcu::vec3 diffuse = hitData.normal + randomv(rand);
 		diffuse = diffuse.length() < 1e-6 ? hitData.normal : diffuse;
@@ -43,7 +75,7 @@ namespace RayTracing
 	}
 
 	//折射
-	__host__ __device__ bool Dielectric::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Dielectric::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
 	{
 		float theta = glmcu::dot(ray.direction, hitData.normal);
 		//从外向内射折射率取倒数

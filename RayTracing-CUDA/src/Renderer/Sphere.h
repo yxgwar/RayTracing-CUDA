@@ -1,12 +1,22 @@
+#pragma once
 #include "Hittable.h"
-#include "Material.h"
+
 
 namespace RayTracing
 {
-	Sphere::Sphere(const glm::vec3& position, float radius, int index)
-		:m_Position(position), m_Radius(radius), m_Index(index)
+	class Sphere :public Hittable
 	{
-	}
+	public:
+		__device__ Sphere(glm::vec3& position, float radius, int index)
+			:m_Position(position), m_Radius(radius), m_Index(index) {};
+		__device__ ~Sphere() = default;
+
+		__device__ bool IsHit(Ray& ray, HitData& hitData) override;
+	private:
+		glm::vec3 m_Position{ 0.0f };
+		float m_Radius = 0.5f;
+		int m_Index;
+	};
 
 	__device__ bool Sphere::IsHit(Ray& ray, HitData& hitData)
 	{

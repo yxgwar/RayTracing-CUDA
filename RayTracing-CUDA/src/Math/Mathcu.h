@@ -28,7 +28,7 @@ namespace glmcu
 	{
 	public:
 		__host__ __device__ vec3() :e{ 0.0f, 0.0f, 0.0f } {}
-		__host__ __device__ vec3(float e) : e{ e } {}
+		__host__ __device__ vec3(float e) : e{ e, e, e } {}
 		__host__ __device__ vec3(float e0, float e1, float e2) : e{ e0, e1, e2 } { }
 		__host__ __device__ vec3(glm::vec3 v) : e{ v.x, v.y, v.z } { }
 
@@ -59,7 +59,7 @@ namespace glmcu
 	{
 	public:
 		__host__ __device__ vec4() :e{ 0.0f, 0.0f, 0.0f, 0.0f } {}
-		__host__ __device__ vec4(float e) : e{ e } {}
+		__host__ __device__ vec4(float e) : e{ e, e, e, e, } {}
 		__host__ __device__ vec4(vec3 v, float e) : e{ v[0], v[1], v[2], e } {}
 		__host__ __device__ vec4(float e0, float e1, float e2, float e3) : e{ e0, e1, e2, e3 } { }
 

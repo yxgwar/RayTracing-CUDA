@@ -93,6 +93,8 @@
     <ClInclude Include="RayTracing-CUDA\src\Renderer\RayMath.h" />
     <ClInclude Include="RayTracing-CUDA\src\Renderer\Render.h" />
     <ClInclude Include="RayTracing-CUDA\src\Renderer\Scene.h" />
+    <ClInclude Include="RayTracing-CUDA\src\Renderer\Sphere.h" />
+    <ClInclude Include="RayTracing-CUDA\src\Renderer\SPMaterial.h" />
     <ClInclude Include="RayTracing-CUDA\src\stb_img\stb_image.h" />
     <ClInclude Include="RayTracing-CUDA\src\stb_img\stb_image_write.h" />
   </ItemGroup>
@@ -101,11 +103,9 @@
     <ClCompile Include="RayTracing-CUDA\src\Core\Entry.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Math\Mathcu.cpp" />
     <CudaCompile Include="RayTracing-CUDA\src\Renderer\Camera.cpp" />
-    <ClCompile Include="RayTracing-CUDA\src\Renderer\Hittable.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Image.cpp" />
-    <ClCompile Include="RayTracing-CUDA\src\Renderer\Material.cpp" />
     <CudaCompile Include="RayTracing-CUDA\src\Renderer\Render.cpp" />
-    <ClCompile Include="RayTracing-CUDA\src\Renderer\Scene.cpp" />
+    <CudaCompile Include="RayTracing-CUDA\src\Renderer\Scene.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

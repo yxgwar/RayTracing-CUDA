@@ -5,7 +5,7 @@
 
 namespace RayTracing
 {
-	__device__ bool IsHit(Ray& ray, HitData& hitData, Hittable** objects, int size)
+	static __device__ bool FindHit(Ray& ray, HitData& hitData, Hittable** objects, int size)
 	{
 		HitData temp;
 		bool isHit = false;
@@ -34,7 +34,7 @@ namespace RayTracing
 		int bounces = 10;
 		for (size_t i = 0; i < bounces; i++)
 		{
-			if(IsHit(traceRay, hitData, hitcu, sizehit))
+			if(FindHit(traceRay, hitData, hitcu, sizehit))
 			{
 				glm::vec3 rColor;
 				if(matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
@@ -54,14 +54,14 @@ namespace RayTracing
 			}
 		}
 		return { color, 1.0f };
-		return { 0.0f };
 	}
 
 	__global__ void render(Hittable** hitcu, int sizehit, Material** matcu, int sizemat, glm::vec3* rd, unsigned char* pix, Ray ray, int width, int height, int samplers)
 	{
-		int index = blockIdx.x * blockDim.x + threadIdx.x;
-		int stride = blockDim.x * gridDim.x;
-		for (int k = index; k < width * height; k += stride) {
+		//int index = blockIdx.x * blockDim.x + threadIdx.x;
+		//int stride = blockDim.x * gridDim.x;
+		//for (int k = index; k < width * height; k += stride) {
+		for (int k = 0; k < width * height; k ++) {
 			curandState rand;
 			curand_init(1984 + k, 0, 0, &rand);
 			int i = k % width;
@@ -74,13 +74,13 @@ namespace RayTracing
 				ray.direction = rd[x + y * width];
 				colorS += perPixel(hitcu, sizehit, matcu, sizemat, ray, rand);
 			}
-
 			glmcu::vec4 color = colorS / float(samplers);
 			color = clamp(color, glmcu::vec4(0.0f), glmcu::vec4(1.0f));//将颜色限制在0~255
-			pix[4 * k] = color[0];
-			pix[4 * k + 1] = color[1];
-			pix[4 * k + 2] = color[2];
-			pix[4 * k + 3] = color[3];
+			
+			pix[4 * k] = int(std::sqrtf(color[0]) * 255.0f);
+			pix[4 * k + 1] = int(std::sqrtf(color[1]) * 255.0f);
+			pix[4 * k + 2] = int(std::sqrtf(color[2]) * 255.0f);
+			pix[4 * k + 3] = int(std::sqrtf(color[3]) * 255.0f);
 		}
 	}
 
@@ -90,29 +90,15 @@ namespace RayTracing
 		int samplers = 100;
 		Ray ray;
 		ray.origin = rayOrigin;
-
-
-		Hittable** hitcu;
-		int sizehit = scene.GetObjects().size() * sizeof(Hittable*);
-		checkCudaErrors(cudaMallocManaged(&hitcu, sizehit));
-		checkCudaErrors(cudaMemcpy(hitcu, scene.GetObjects().data(), sizehit, cudaMemcpyHostToDevice));
-
-		Material** matcu;
-		int sizemat = scene.GetObjects().size() * sizeof(Material*);
-		checkCudaErrors(cudaMallocManaged(&matcu, sizemat));
-		checkCudaErrors(cudaMemcpy(matcu, scene.GetMaterial().data(), sizemat, cudaMemcpyHostToDevice));
-
+		
 		unsigned char* pix;
 		checkCudaErrors(cudaMallocManaged(&pix, width * height * channels * sizeof(unsigned char)));
 
-		render << <1, 1 >> > (hitcu, sizehit, matcu, sizemat, camera.GetRayDirections(), pix, ray, width, height, samplers);
+		render << <1, 1 >> > (scene.GetHit(), scene.GetHitCount(), scene.GetMat(), scene.GetMatCount(), camera.GetRayDirections(), pix, ray, width, height, samplers);
 		checkCudaErrors(cudaGetLastError());
 		checkCudaErrors(cudaDeviceSynchronize());
 
 		checkCudaErrors(cudaMemcpy(image.GeiImage(), pix, width * height * channels * sizeof(unsigned char), cudaMemcpyDeviceToHost));
-
-		checkCudaErrors(cudaFree(hitcu));
-		checkCudaErrors(cudaFree(matcu));
 		checkCudaErrors(cudaFree(pix));
 	}
 }
