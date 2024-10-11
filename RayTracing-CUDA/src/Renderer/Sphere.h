@@ -4,26 +4,9 @@
 
 namespace RayTracing
 {
-	static __device__ float sqrtcuS(float x)
-	{
-		float xhalf = 0.5f * x;
-		int i = *(int*)&x;
-
-		if (!x) return 0;
-
-		i = 0x5f375a86 - (i >> 1); // beautiful number
-		x = *(float*)&i;
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-
-		return 1 / x;
-	}
-
 	static __device__ glmcu::vec3 normalizeS(glmcu::vec3& v)
 	{
-		float  x = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-		float k = 1.0f / sqrtcuS(x);
+		float k = 1.0f / sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 		return glmcu::vec3{ v[0] * k,v[1] * k,v[2] * k };
 	}
 

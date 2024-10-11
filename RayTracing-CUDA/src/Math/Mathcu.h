@@ -7,22 +7,6 @@
 
 namespace glmcu
 {
-	static __device__ float sqrtcu(float x)
-	{
-		float xhalf = 0.5f * x;
-		int i = *(int*)&x;
-
-		if (!x) return 0;
-
-		i = 0x5f375a86 - (i >> 1); // beautiful number
-		x = *(float*)&i;
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-
-		return 1 / x;
-	}
-
 	class vec2
 	{
 	public:
@@ -56,7 +40,7 @@ namespace glmcu
 		__device__ vec3& operator*=(const vec3& v2) { e[0] *= v2[0]; e[1] *= v2[1]; e[2] *= v2[2]; return *this;}
 		__device__ vec3& operator*=(const glm::vec3& v2) { e[0] *= v2.x; e[1] *= v2.y; e[2] *= v2.z; return *this;}
 
-		__device__ float length() const { return sqrtcu(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]); }
+		__device__ float length() const { return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]); }
 		__device__ inline float squared_length() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
 
 
@@ -86,7 +70,7 @@ namespace glmcu
 
 		__device__ vec4& operator+=(const vec4& v2) { e[0] += v2[0]; e[1] += v2[1]; e[2] += v2[2]; e[3] += v2[3];  return *this; }
 
-		__device__ float length() const { return sqrtcu(e[0] * e[0] + e[1] * e[1] + e[2] * e[2] + e[3] * e[3]); }
+		__device__ float length() const { return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2] + e[3] * e[3]); }
 		__device__ inline float squared_length() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2] + e[3] * e[3]; }
 
 
@@ -113,8 +97,8 @@ namespace glmcu
 
 	static __device__ vec3 normalize(vec3& v)
 	{
-		float  x = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-		float k = 1.0f / sqrtcu(x);
+		//float  x = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+		float k = 1.0f / sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 		return vec3{ v[0] * k,v[1] * k,v[2] * k };
 	}
 
@@ -211,6 +195,6 @@ namespace glmcu
 
 	__device__ static vec3 reflect(vec3& in, vec3& n)
 	{
-		return in - 2.0f * (in * n) * n;
+		return in - 2.0f * dot(in, n) * n;
 	}
 }

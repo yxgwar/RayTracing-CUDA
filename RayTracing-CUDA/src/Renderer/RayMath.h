@@ -6,41 +6,19 @@
 
 namespace RayTracing
 {
-	static __device__ float sqrtcuR(float x)
-	{
-		float xhalf = 0.5f * x;
-		int i = *(int*)&x;
-
-		if (!x) return 0;
-
-		i = 0x5f375a86 - (i >> 1); // beautiful number
-		x = *(float*)&i;
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
-
-		return 1 / x;
-	}
-
-	static __device__ glmcu::vec3 normalizeR(glmcu::vec3& v)
-	{
-		float  x = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-		float k = 1.0f / sqrtcuR(x);
-		return glmcu::vec3{ v[0] * k,v[1] * k,v[2] * k };
-	}
-
 	//return float 0~1
-	static __device__ float randomf(curandState state)
+	static __device__ float randomf(curandState& state)
 	{
 		return curand_uniform(&state);
 	}
 
 	//return vec3 -1~1
-	static __device__ glmcu::vec3 randomv(curandState state)
+	static __device__ glmcu::vec3 randomv(curandState& state)
 	{
 		while (true)
 		{
-			glmcu::vec3 rv = { curand_uniform(&state), curand_uniform(&state), curand_uniform(&state) };
+			glmcu::vec3 rv = { curand_uniform(&state) * 2.0f - 1.0f, curand_uniform(&state) * 2.0f - 1.0f, curand_uniform(&state) * 2.0f - 1.0f };
+			//rv = rv * 2.0f - 1.0f;
 			float l = rv.length();
 			if (l < 1.0f)
 				return rv;
@@ -48,7 +26,7 @@ namespace RayTracing
 	}
 
 	//return int -1~1
-	static __device__ int randomi(curandState state)
+	static __device__ int randomi(curandState& state)
 	{
 		float r = curand_uniform(&state);
 		if (r < 0.33f)

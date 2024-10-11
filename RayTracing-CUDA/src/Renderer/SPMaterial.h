@@ -9,9 +9,9 @@ namespace RayTracing
 		__device__ Metal(const glm::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
 		__device__ ~Metal() = default;
 
-		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
-		glm::vec3 m_Albedo;
+		glmcu::vec3 m_Albedo;
 		float m_Fuzz;
 	};
 
@@ -21,9 +21,9 @@ namespace RayTracing
 		__device__ Lambertian(const glm::vec3& albedo) :m_Albedo(albedo) {}
 		__device__ ~Lambertian() = default;
 
-		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
-		glm::vec3 m_Albedo;
+		glmcu::vec3 m_Albedo;
 	};
 
 	class Dielectric :public Material
@@ -32,7 +32,7 @@ namespace RayTracing
 		__device__ Dielectric(float refractionIndex) :m_RefractionIndex(refractionIndex) {}
 		__device__ ~Dielectric() = default;
 
-		__device__ bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) override;
+		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
 		float m_RefractionIndex;
 	};
@@ -54,9 +54,9 @@ namespace RayTracing
 	}
 
 	//镜面反射
-	__device__ bool Metal::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Metal::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
-		//OUT = IN - 2*(IN*N)*N
+		//OUT = IN - 2*dot(IN,N)*N
 		ray.direction = glmcu::normalize(glmcu::reflect(ray.direction, hitData.normal) + randomv(rand) * m_Fuzz);
 		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
 		color = m_Albedo;
@@ -64,7 +64,7 @@ namespace RayTracing
 	}
 
 	//漫反射
-	__device__ bool Lambertian::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Lambertian::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
 		glmcu::vec3 diffuse = hitData.normal + randomv(rand);
 		diffuse = diffuse.length() < 1e-6 ? hitData.normal : diffuse;
@@ -75,7 +75,7 @@ namespace RayTracing
 	}
 
 	//折射
-	__device__ bool Dielectric::Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand)
+	__device__ bool Dielectric::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
 		float theta = glmcu::dot(ray.direction, hitData.normal);
 		//从外向内射折射率取倒数
@@ -87,7 +87,7 @@ namespace RayTracing
 		else
 			ray.direction = refract(ray.direction, hitData.normal, refraction);
 		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
-		color = glm::vec3(1.0f);
+		color = glmcu::vec3(1.0f);
 		return true;
 	}
 }

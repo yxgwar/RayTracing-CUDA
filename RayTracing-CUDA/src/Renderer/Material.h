@@ -10,6 +10,6 @@ namespace RayTracing
 	public:
 		__device__ virtual ~Material() = default;
 
-		__device__ virtual bool Scatter(Ray& ray, HitData& hitData, glm::vec3& color, curandState rand) = 0;
+		__device__ virtual bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) = 0;
 	};
 }

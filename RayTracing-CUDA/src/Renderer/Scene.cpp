@@ -79,8 +79,6 @@ namespace RayTracing
 	Scene::~Scene()
 	{
 		free << <1, 1 >> > (m_Objects, m_Materials, m_Hit, m_Mat);
-		checkCudaErrors(cudaFree(m_Objects));
-		checkCudaErrors(cudaFree(m_Materials));
 	}
 
 	void Scene::CreateWorld(int hit, int mat)

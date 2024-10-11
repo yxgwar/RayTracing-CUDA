@@ -36,7 +36,8 @@ namespace RayTracing
 		{
 			if(FindHit(traceRay, hitData, hitcu, sizehit))
 			{
-				glm::vec3 rColor;
+				glmcu::vec3 rColor(0.0f);
+					//printf("%f, %f, %f\n", rColor[0], rColor[1], rColor[2]);
 				if (matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
 				{
 					color *= rColor;
@@ -75,7 +76,6 @@ namespace RayTracing
 				int x = clamp(i + randomi(rand), 0, width - 1);
 				int y = clamp(j + randomi(rand), 0, height - 1);
 				ray.direction = rd[x + y * width];
-				float ff = ray.direction[1];
 				colorS += perPixel(hitcu, sizehit, matcu, sizemat, ray, rand);
 			}
 			glmcu::vec4 color = colorS / float(samplers);
