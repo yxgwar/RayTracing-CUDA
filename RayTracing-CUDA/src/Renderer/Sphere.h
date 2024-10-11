@@ -1,9 +1,32 @@
 #pragma once
 #include "Hittable.h"
-
+#include "Math/Mathcu.h"
 
 namespace RayTracing
 {
+	static __device__ float sqrtcuS(float x)
+	{
+		float xhalf = 0.5f * x;
+		int i = *(int*)&x;
+
+		if (!x) return 0;
+
+		i = 0x5f375a86 - (i >> 1); // beautiful number
+		x = *(float*)&i;
+		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
+		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
+		x = x * (1.5f - xhalf * x * x); // 牛顿迭代法，提高精度
+
+		return 1 / x;
+	}
+
+	static __device__ glmcu::vec3 normalizeS(glmcu::vec3& v)
+	{
+		float  x = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+		float k = 1.0f / sqrtcuS(x);
+		return glmcu::vec3{ v[0] * k,v[1] * k,v[2] * k };
+	}
+
 	class Sphere :public Hittable
 	{
 	public:
@@ -12,6 +35,7 @@ namespace RayTracing
 		__device__ ~Sphere() = default;
 
 		__device__ bool IsHit(Ray& ray, HitData& hitData) override;
+		__host__ __device__ virtual int GetIndex() override { return m_Index; }
 	private:
 		glm::vec3 m_Position{ 0.0f };
 		float m_Radius = 0.5f;
@@ -45,7 +69,8 @@ namespace RayTracing
 			if (t < 0)
 				return false;
 			glmcu::vec3 hitPosition = ray.origin + ray.direction * t;
-			glmcu::vec3 normal = glmcu::normalize(hitPosition - glmcu::vec3(m_Position));
+			glmcu::vec3 nor = hitPosition - glmcu::vec3(m_Position);
+			glmcu::vec3 normal = normalizeS(nor);
 
 			hitData.hitPosition = hitPosition;
 			hitData.normal = normal;

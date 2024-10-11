@@ -68,10 +68,12 @@ namespace RayTracing
 		{
 			delete hit[i];
 		}
+		delete[] hit;
 		for (int i = 0; i < m; i++)
 		{
 			delete mat[i];
 		}
+		delete[] mat;
 	}
 
 	Scene::~Scene()
@@ -83,6 +85,8 @@ namespace RayTracing
 
 	void Scene::CreateWorld(int hit, int mat)
 	{
+		m_Hit = hit;
+		m_Mat = mat;
 		checkCudaErrors(cudaMallocManaged(&m_Objects, hit * sizeof(Hittable*)));
 		checkCudaErrors(cudaMallocManaged(&m_Materials, mat * sizeof(Material*)));
 		create_world << <1, 1 >> > (m_Objects, m_Materials);

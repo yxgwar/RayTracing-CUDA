@@ -32,13 +32,15 @@ namespace RayTracing
 
 		glmcu::vec3 color(1.0f);
 		int bounces = 10;
-		for (size_t i = 0; i < bounces; i++)
+		for (int i = 0; i < bounces; i++)
 		{
 			if(FindHit(traceRay, hitData, hitcu, sizehit))
 			{
 				glm::vec3 rColor;
-				if(matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
+				if (matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
+				{
 					color *= rColor;
+				}
 				else
 				{
 					color = glmcu::vec3(0.0f);
@@ -58,10 +60,11 @@ namespace RayTracing
 
 	__global__ void render(Hittable** hitcu, int sizehit, Material** matcu, int sizemat, glm::vec3* rd, unsigned char* pix, Ray ray, int width, int height, int samplers)
 	{
-		//int index = blockIdx.x * blockDim.x + threadIdx.x;
-		//int stride = blockDim.x * gridDim.x;
-		//for (int k = index; k < width * height; k += stride) {
-		for (int k = 0; k < width * height; k ++) {
+		int index = blockIdx.x * blockDim.x + threadIdx.x;
+		int stride = blockDim.x * gridDim.x;
+		for (int k = index; k < width * height; k += stride)
+		//for (int k = 0; k < width * height; k++) 
+		{
 			curandState rand;
 			curand_init(1984 + k, 0, 0, &rand);
 			int i = k % width;
@@ -72,15 +75,16 @@ namespace RayTracing
 				int x = clamp(i + randomi(rand), 0, width - 1);
 				int y = clamp(j + randomi(rand), 0, height - 1);
 				ray.direction = rd[x + y * width];
+				float ff = ray.direction[1];
 				colorS += perPixel(hitcu, sizehit, matcu, sizemat, ray, rand);
 			}
 			glmcu::vec4 color = colorS / float(samplers);
+
 			color = clamp(color, glmcu::vec4(0.0f), glmcu::vec4(1.0f));//将颜色限制在0~255
-			
-			pix[4 * k] = int(std::sqrtf(color[0]) * 255.0f);
-			pix[4 * k + 1] = int(std::sqrtf(color[1]) * 255.0f);
-			pix[4 * k + 2] = int(std::sqrtf(color[2]) * 255.0f);
-			pix[4 * k + 3] = int(std::sqrtf(color[3]) * 255.0f);
+			pix[4 * k] = int(sqrt(color[0]) * 255.0f);
+			pix[4 * k + 1] = int(sqrt(color[1]) * 255.0f);
+			pix[4 * k + 2] = int(sqrt(color[2]) * 255.0f);
+			pix[4 * k + 3] = int(sqrt(color[3]) * 255.0f);
 		}
 	}
 
@@ -94,7 +98,9 @@ namespace RayTracing
 		unsigned char* pix;
 		checkCudaErrors(cudaMallocManaged(&pix, width * height * channels * sizeof(unsigned char)));
 
-		render << <1, 1 >> > (scene.GetHit(), scene.GetHitCount(), scene.GetMat(), scene.GetMatCount(), camera.GetRayDirections(), pix, ray, width, height, samplers);
+		int blocksize = 256;
+		int numBlocks = (width * height + blocksize - 1) / blocksize;
+		render << <numBlocks,blocksize >> > (scene.GetHit(), scene.GetHitCount(), scene.GetMat(), scene.GetMatCount(), camera.GetRayDirections(), pix, ray, width, height, samplers);
 		checkCudaErrors(cudaGetLastError());
 		checkCudaErrors(cudaDeviceSynchronize());
 
