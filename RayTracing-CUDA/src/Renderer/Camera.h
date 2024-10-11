@@ -8,7 +8,7 @@ namespace RayTracing
 	{
 	public:
 		Camera(float FOV, float nearClip, float farClip, int viewportWidth, int viewportHeight);
-		~Camera() = default;
+		~Camera();
 
 		inline const glm::vec3& GetOrigin() const { return m_Position; }
 		inline glm::vec3* GetRayDirections() const { return m_RayDirections; }

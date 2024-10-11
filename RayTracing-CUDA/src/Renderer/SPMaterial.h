@@ -7,7 +7,6 @@ namespace RayTracing
 	{
 	public:
 		__device__ Metal(const glm::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
-		__device__ ~Metal() = default;
 
 		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
@@ -19,7 +18,6 @@ namespace RayTracing
 	{
 	public:
 		__device__ Lambertian(const glm::vec3& albedo) :m_Albedo(albedo) {}
-		__device__ ~Lambertian() = default;
 
 		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
@@ -30,7 +28,6 @@ namespace RayTracing
 	{
 	public:
 		__device__ Dielectric(float refractionIndex) :m_RefractionIndex(refractionIndex) {}
-		__device__ ~Dielectric() = default;
 
 		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
@@ -57,7 +54,9 @@ namespace RayTracing
 	__device__ bool Metal::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
 		//OUT = IN - 2*dot(IN,N)*N
-		ray.direction = glmcu::normalize(glmcu::reflect(ray.direction, hitData.normal) + randomv(rand) * m_Fuzz);
+		glmcu::vec3 re = glmcu::reflect(ray.direction, hitData.normal) + randomv(rand) * m_Fuzz;
+		ray.direction = glmcu::normalize(re);
+		//ray.direction = glmcu::normalize(glmcu::reflect(ray.direction, hitData.normal) + randomv(rand) * m_Fuzz);
 		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
 		color = m_Albedo;
 		return glmcu::dot(hitData.normal, ray.direction) > 0;

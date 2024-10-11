@@ -1,6 +1,7 @@
 #include "Render.h"
 #include "RayMath.h"
-#include "Material.h"
+#include "SPMaterial.h"
+#include "Sphere.h"
 #include "Core/CheckCudaError.h"
 
 namespace RayTracing
@@ -37,7 +38,6 @@ namespace RayTracing
 			if(FindHit(traceRay, hitData, hitcu, sizehit))
 			{
 				glmcu::vec3 rColor(0.0f);
-					//printf("%f, %f, %f\n", rColor[0], rColor[1], rColor[2]);
 				if (matcu[hitData.index]->Scatter(traceRay, hitData, rColor, rand))
 				{
 					color *= rColor;
@@ -64,7 +64,6 @@ namespace RayTracing
 		int index = blockIdx.x * blockDim.x + threadIdx.x;
 		int stride = blockDim.x * gridDim.x;
 		for (int k = index; k < width * height; k += stride)
-		//for (int k = 0; k < width * height; k++) 
 		{
 			curandState rand;
 			curand_init(1984 + k, 0, 0, &rand);
@@ -88,8 +87,78 @@ namespace RayTracing
 		}
 	}
 
+	static __global__ void create_world(Hittable** hit, Material** mat)
+	{
+#if 1
+		int i = 0;
+		mat[i++] = new Metal(glm::vec3(0.9f), 0.5f);
+		mat[i++] = new Dielectric(1.5f);
+		mat[i++] = new Dielectric(1.0f / 1.5f);
+		mat[i++] = new Lambertian(glm::vec3{ 0.8f, 0.2f, 0.7f });
+		mat[i] = new Lambertian(glm::vec3{ 0.5f, 0.5f, 0.5f });
+		i = 0;
+		hit[i++] = new Sphere(glm::vec3(0.0f), 0.5f, 3);
+		hit[i++] = new Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f, 1);
+		hit[i++] = new Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.4f, 2);
+		hit[i++] = new Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f, 0);
+		hit[i] = new Sphere(glm::vec3{ 0.0f, -100.5f, 0.0f }, 100.0f, 4);
+#else
+		m_Scene.AddMaterials(std::make_shared<Lambertian>(glm::vec3(0.5f, 0.5f, 0.5f)));
+		m_Scene.AddObjects(std::make_shared<Sphere>(glm::vec3{ 0.0f, -1000.0f, 0.0f }, 1000.0f, 0));
+
+		for (int a = -11; a < 11; a++) {
+			for (int b = -11; b < 11; b++) {
+				auto choose_mat = RayMath::Randomf();
+				glm::vec3 center{ a + 0.9f * RayMath::Randomf(), 0.2f, b + 0.9f * RayMath::Randomf() };
+
+				if (glm::length(center - glm::vec3{ 4.0f, 0.2f, 0.0f }) > 0.9) {
+
+					if (choose_mat < 0.8) {
+						// diffuse
+						auto albedo = RayMath::RandomVec() * RayMath::RandomVec();
+						m_Scene.AddMaterials(std::make_shared<Lambertian>(albedo));
+					}
+					else if (choose_mat < 0.95) {
+						// metal
+						auto albedo = RayMath::RandomVec() * 0.5f + 0.5f;
+						auto fuzz = RayMath::Randomf() * 0.5f;
+						m_Scene.AddMaterials(std::make_shared<Metal>(albedo, fuzz));
+					}
+					else {
+						// glass
+						m_Scene.AddMaterials(std::make_shared<Dielectric>(1.5f));
+					}
+					m_Scene.AddObjects(std::make_shared<Sphere>(center, 0.2f, m_Scene.LastMaterial()));
+				}
+			}
+		}
+
+		m_Scene.AddMaterials(std::make_shared<Dielectric>(1.5f));
+		m_Scene.AddObjects(std::make_shared<Sphere>(glm::vec3{ 0.0f, 1.0f, 0.0f }, 1.0f, m_Scene.LastMaterial()));
+
+		m_Scene.AddMaterials(std::make_shared<Lambertian>(glm::vec3{ 0.4f, 0.2f, 0.1f }));
+		m_Scene.AddObjects(std::make_shared<Sphere>(glm::vec3{ -4.0f, 1.0f, 0.0f }, 1.0f, m_Scene.LastMaterial()));
+
+		m_Scene.AddMaterials(std::make_shared<Metal>(glm::vec3{ 0.7f, 0.6f, 0.5f }, 0.0f));
+		m_Scene.AddObjects(std::make_shared<Sphere>(glm::vec3{ 4.0f, 1.0f, 0.0f }, 1.0f, m_Scene.LastMaterial()));
+#endif
+	}
+
+	static __global__ void free(Hittable** hit, Material** mat, int h, int m)
+	{
+		for (int i = 0; i < h; i++)
+		{
+			delete hit[i];
+		}
+		for (int i = 0; i < m; i++)
+		{
+			delete mat[i];
+		}
+	}
+
 	void Render::StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels)
 	{
+		create_world << <1, 1 >> > (scene.GetHit(), scene.GetMat());
 		glm::vec3 rayOrigin = camera.GetOrigin();
 		int samplers = 100;
 		Ray ray;
@@ -103,6 +172,8 @@ namespace RayTracing
 		render << <numBlocks,blocksize >> > (scene.GetHit(), scene.GetHitCount(), scene.GetMat(), scene.GetMatCount(), camera.GetRayDirections(), pix, ray, width, height, samplers);
 		checkCudaErrors(cudaGetLastError());
 		checkCudaErrors(cudaDeviceSynchronize());
+
+		free << <1, 1 >> > (scene.GetHit(), scene.GetMat(), scene.GetHitCount(), scene.GetMatCount());
 
 		checkCudaErrors(cudaMemcpy(image.GeiImage(), pix, width * height * channels * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 		checkCudaErrors(cudaFree(pix));

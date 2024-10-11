@@ -45,6 +45,11 @@ namespace RayTracing
 		calculateRayDirections();
 	}
 
+	Camera::~Camera()
+	{
+		checkCudaErrors(cudaFree(m_RayDirections));
+	}
+
 	void Camera::calculateViewMatrix()
 	{
 		//‘› ± π”√glm::lookat

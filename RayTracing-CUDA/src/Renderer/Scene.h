@@ -12,7 +12,7 @@ namespace RayTracing
 	class Scene 
 	{
 	public:
-		Scene() = default;
+		Scene();
 		~Scene();
 
 		void CreateWorld(int hit, int mat);
@@ -21,8 +21,8 @@ namespace RayTracing
 		//void AddMaterials(Material* material) { m_Material.push_back(material); }
 
 		//inline int LastMaterial() { return (int)m_Material.size() - 1; }
-		inline Hittable** GetHit() { return m_Objects; }
-		inline Material** GetMat() { return m_Materials; }
+		inline Hittable** GetHit() const { return m_Objects; }
+		inline Material** GetMat() const { return m_Materials; }
 		inline int GetHitCount() const { return m_Hit; }
 		inline int GetMatCount() const { return m_Mat; }
 

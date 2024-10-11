@@ -8,7 +8,7 @@ namespace RayTracing
 {
 	App::App(int width, int height, int channels)
 		:m_Width(width), m_Height(height), m_Channels(channels), m_AspectRatio((float)width / height),
-		m_Camera(45.0f, 0.1f, 100.0f, width, height)
+		m_Camera(45.0f, 0.1f, 100.0f, width, height), m_Scene()
 	{
 		RAY_INFO("Start!");
 	}

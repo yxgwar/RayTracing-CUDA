@@ -15,7 +15,6 @@ namespace RayTracing
 	public:
 		__device__ Sphere(glm::vec3& position, float radius, int index)
 			:m_Position(position), m_Radius(radius), m_Index(index) {};
-		__device__ ~Sphere() = default;
 
 		__device__ bool IsHit(Ray& ray, HitData& hitData) override;
 		__host__ __device__ virtual int GetIndex() override { return m_Index; }
