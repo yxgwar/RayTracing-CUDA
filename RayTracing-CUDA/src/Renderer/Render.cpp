@@ -159,6 +159,8 @@ namespace RayTracing
 	void Render::StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels)
 	{
 		create_world << <1, 1 >> > (scene.GetHit(), scene.GetMat());
+		checkCudaErrors(cudaGetLastError());
+		checkCudaErrors(cudaDeviceSynchronize());
 		glm::vec3 rayOrigin = camera.GetOrigin();
 		int samplers = 100;
 		Ray ray;
@@ -174,6 +176,8 @@ namespace RayTracing
 		checkCudaErrors(cudaDeviceSynchronize());
 
 		free << <1, 1 >> > (scene.GetHit(), scene.GetMat(), scene.GetHitCount(), scene.GetMatCount());
+		checkCudaErrors(cudaGetLastError());
+		checkCudaErrors(cudaDeviceSynchronize());
 
 		checkCudaErrors(cudaMemcpy(image.GeiImage(), pix, width * height * channels * sizeof(unsigned char), cudaMemcpyDeviceToHost));
 		checkCudaErrors(cudaFree(pix));
