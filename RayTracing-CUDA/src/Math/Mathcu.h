@@ -48,6 +48,7 @@ namespace glmcu
 
 		friend static __device__ vec3 operator*(vec3& v1, vec3& v2);
 		friend static __device__ vec3 operator-(vec3& v1, vec3& v2);
+		friend static __device__ vec3 operator+(vec3& v1, float e);
 		friend static __device__ vec3 operator*(vec3& v1, float e);
 		friend static __device__ vec3 operator*(float e, vec3& v1);
 		friend static __device__ vec3 operator/(vec3& v1, float e);
@@ -125,6 +126,11 @@ namespace glmcu
 	__device__ static vec3 operator-(vec3& v1, vec3& v2)
 	{
 		return vec3(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
+	}
+
+	__device__ static vec3 operator+(vec3& v1, float e)
+	{
+		return vec3(v1[0] + e, v1[1] + e, v1[2] + e);
 	}
 
 	__device__ static vec3 operator*(vec3& v1, float e)

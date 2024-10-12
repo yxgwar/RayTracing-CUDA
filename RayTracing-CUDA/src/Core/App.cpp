@@ -8,7 +8,7 @@ namespace RayTracing
 {
 	App::App(int width, int height, int channels)
 		:m_Width(width), m_Height(height), m_Channels(channels), m_AspectRatio((float)width / height),
-		m_Camera(45.0f, 0.1f, 100.0f, width, height), m_Scene()
+		m_Camera(30.0, 0.1f, 100.0f, width, height), m_Scene()
 	{
 		RAY_INFO("Start!");
 	}
@@ -17,12 +17,14 @@ namespace RayTracing
 	{
 		Image image = Image(m_Width, m_Height);
 
-		m_Scene.CreateWorld(5, 5);
+		//m_Scene.CreateWorld(5, 5);
+		m_Scene.CreateWorld(22 * 22 + 1 + 3, 22 * 22 + 1 + 3);
 
 		RAY_INFO("Start setting data!");
 
 		auto start = std::chrono::high_resolution_clock::now();
-		m_Camera.SetPosition({ 0.0f, 0.0f, 3.0f });
+		//m_Camera.SetPosition({ 0.0f, 0.0f, 3.0f });
+		m_Camera.SetPosition({ 13.0f, 2.0f, 3.0f });
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> duration = end - start;
 		std::cout << "Camera Time taken: " << duration.count() << " seconds" << std::endl;

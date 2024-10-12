@@ -6,7 +6,7 @@ namespace RayTracing
 	class Metal :public Material
 	{
 	public:
-		__device__ Metal(const glm::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
+		__device__ Metal(const glmcu::vec3& albedo, float fuzz) :m_Albedo(albedo), m_Fuzz(fuzz) {}
 
 		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
@@ -17,7 +17,7 @@ namespace RayTracing
 	class Lambertian :public Material
 	{
 	public:
-		__device__ Lambertian(const glm::vec3& albedo) :m_Albedo(albedo) {}
+		__device__ Lambertian(const glmcu::vec3& albedo) :m_Albedo(albedo) {}
 
 		__device__ bool Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand) override;
 	private:
