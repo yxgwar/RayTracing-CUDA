@@ -36,9 +36,9 @@ namespace RayTracing
 
 	static __device__ float reflectance(float cosine, float refraction_index) {
 		// Use Schlick's approximation for reflectance.
-		auto r0 = (1 - refraction_index) / (1 + refraction_index);
+		auto r0 = (1.0f - refraction_index) / (1.0f + refraction_index);
 		r0 = r0 * r0;
-		return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+		return r0 + (1.0f - r0) * std::pow((1.0f - cosine), 5);
 	}
 
 	static __device__ glmcu::vec3 refract(glmcu::vec3& direction, glmcu::vec3& normal, float refractionIndex)
@@ -66,9 +66,8 @@ namespace RayTracing
 	__device__ bool Lambertian::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
 		glmcu::vec3 diffuse = hitData.normal + randomv(rand);
-		diffuse = diffuse.length() < 1e-6 ? hitData.normal : diffuse;
 		ray.direction = glmcu::normalize(diffuse);
-		ray.origin = hitData.hitPosition + diffuse * 0.00001f;
+		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
 		color = m_Albedo;
 		return true;
 	}
@@ -76,17 +75,59 @@ namespace RayTracing
 	//折射
 	__device__ bool Dielectric::Scatter(Ray& ray, HitData& hitData, glmcu::vec3& color, curandState& rand)
 	{
+#if 1
 		float theta = glmcu::dot(ray.direction, hitData.normal);
-		//从外向内射折射率取倒数
-		float refraction = theta < 0.0f ? 1.0f / m_RefractionIndex : m_RefractionIndex;
+		float refraction;
+		glmcu::vec3 nn;
+		if (theta < 0.0f)
+		{
+			//从外向内射折射率取倒数
+			refraction = 1.0f / m_RefractionIndex;
+			nn = hitData.normal;
+		}
+		else
+		{
+			refraction = m_RefractionIndex;
+			nn = -hitData.normal;
+		}
 		//判断是折射还是全反射
 		//m_RefractionIndex * sin(theta) > 1为全反射
 		if (sqrt(1.0f - theta * theta) * refraction > 1 || reflectance(-theta, refraction) > randomf(rand))
-			ray.direction = glmcu::reflect(ray.direction, hitData.normal);
+			ray.direction = glmcu::reflect(ray.direction, nn);
 		else
-			ray.direction = refract(ray.direction, hitData.normal, refraction);
+			ray.direction = refract(ray.direction, nn, refraction);
 		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
 		color = glmcu::vec3(1.0f);
 		return true;
+#else
+		glmcu::vec3 outward_normal;
+		glmcu::vec3 reflected = glmcu::reflect(ray.direction, hitData.normal);
+		float ni_over_nt;
+		color = glmcu::vec3(1.0f, 1.0f, 1.0f);
+		glmcu::vec3 refracted;
+		float reflect_prob;
+		float cosine;
+		if (glmcu::dot(ray.direction, hitData.normal) > 0.0f) {
+			outward_normal = -hitData.normal;
+			ni_over_nt = m_RefractionIndex;
+			cosine = dot(ray.direction, hitData.normal) / ray.direction.length();
+			cosine = sqrt(1.0f - m_RefractionIndex * m_RefractionIndex * (1 - cosine * cosine));
+		}
+		else {
+			outward_normal = hitData.normal;
+			ni_over_nt = 1.0f / m_RefractionIndex;
+			cosine = -glmcu::dot(ray.direction, hitData.normal) / ray.direction.length();
+		}
+		if (refract(ray.direction, outward_normal, ni_over_nt, refracted))
+			reflect_prob = reflectance(cosine, m_RefractionIndex);
+		else
+			reflect_prob = 1.0f;
+		if (randomf(rand) < reflect_prob)
+			ray.direction = reflected;
+		else
+			ray.direction = refracted;
+		ray.origin = hitData.hitPosition + ray.direction * 0.00001f;
+		return true;
+#endif
 	}
 }

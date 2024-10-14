@@ -17,7 +17,7 @@ namespace RayTracing
 	class Hittable
 	{
 	public:
-		__device__ virtual bool IsHit(Ray& ray, HitData& hitData) = 0;
+		__device__ virtual bool IsHit(Ray& ray, HitData& hitData, float cloest) = 0;
 		__host__ __device__ virtual int GetIndex() = 0;
 	};
 }

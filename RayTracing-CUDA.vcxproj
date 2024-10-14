@@ -86,11 +86,11 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="RayTracing-CUDA\src\newcamera.h" />
     <ClInclude Include="RayTracing-CUDA\src\Core\App.h" />
     <ClInclude Include="RayTracing-CUDA\src\Core\CheckCudaError.h" />
     <ClInclude Include="RayTracing-CUDA\src\Core\Log.h" />
     <ClInclude Include="RayTracing-CUDA\src\Math\Mathcu.h" />
-    <ClInclude Include="RayTracing-CUDA\src\Renderer\Camera.h" />
     <ClInclude Include="RayTracing-CUDA\src\Renderer\Hittable.h" />
     <ClInclude Include="RayTracing-CUDA\src\Renderer\Image.h" />
     <ClInclude Include="RayTracing-CUDA\src\Renderer\Material.h" />
@@ -107,7 +107,6 @@
     <ClCompile Include="RayTracing-CUDA\src\Core\App.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Core\Entry.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Math\Mathcu.cpp" />
-    <CudaCompile Include="RayTracing-CUDA\src\Renderer\Camera.cpp" />
     <ClCompile Include="RayTracing-CUDA\src\Renderer\Image.cpp" />
     <CudaCompile Include="RayTracing-CUDA\src\Renderer\Render.cpp" />
     <CudaCompile Include="RayTracing-CUDA\src\Renderer\Scene.cpp" />

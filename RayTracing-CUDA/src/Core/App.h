@@ -13,7 +13,7 @@ namespace RayTracing
 
 		void Run();
 	private:
-		Camera m_Camera;
+		//Camera m_Camera;
 		Scene m_Scene;
 
 		int m_Width, m_Height, m_Channels;

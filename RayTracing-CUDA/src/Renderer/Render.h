@@ -11,6 +11,6 @@ namespace RayTracing
 	class Render
 	{
 	public:
-		static void StartRendering(Scene& scene, Camera& camera, Image& image, int width, int height, int channels);
+		static void StartRendering(Scene& scene, /*Camera& camera, */Image& image, int width, int height, int channels);
 	};
 }

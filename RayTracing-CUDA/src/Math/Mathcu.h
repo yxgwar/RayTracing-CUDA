@@ -20,8 +20,8 @@ namespace glmcu
 
 		float e[2];
 
-		friend static __device__ vec2 operator*(vec2& v1, float v);
-		friend static __device__ vec2 operator-(vec2& v1, float v);
+		friend static __device__ vec2 operator*(const vec2& v1, float v);
+		friend static __device__ vec2 operator-(const vec2& v1, float v);
 	};
 
 	class vec3
@@ -33,12 +33,13 @@ namespace glmcu
 		__host__ __device__ vec3(glm::vec3 v) : e{ v.x, v.y, v.z } { }
 
 		//__device__ inline const vec3& operator+() const { return *this; }
-		//__device__ inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
+		__device__ inline vec3 operator-() const { return vec3(-e[0], -e[1], -e[2]); }
 		__host__ __device__ inline float operator[](int i) const { return e[i]; }
 		__host__ __device__ inline float& operator[](int i) { return e[i]; };
 
 		__device__ vec3& operator*=(const vec3& v2) { e[0] *= v2[0]; e[1] *= v2[1]; e[2] *= v2[2]; return *this;}
 		__device__ vec3& operator*=(const glm::vec3& v2) { e[0] *= v2.x; e[1] *= v2.y; e[2] *= v2.z; return *this;}
+		__device__ vec3& operator+=(const vec3& v2) { e[0] += v2[0]; e[1] += v2[1]; e[2] += v2[2]; return *this; }
 
 		__device__ float length() const { return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]); }
 		__device__ inline float squared_length() const { return e[0] * e[0] + e[1] * e[1] + e[2] * e[2]; }
@@ -46,13 +47,13 @@ namespace glmcu
 
 		float e[3];
 
-		friend static __device__ vec3 operator*(vec3& v1, vec3& v2);
-		friend static __device__ vec3 operator-(vec3& v1, vec3& v2);
-		friend static __device__ vec3 operator+(vec3& v1, float e);
-		friend static __device__ vec3 operator*(vec3& v1, float e);
-		friend static __device__ vec3 operator*(float e, vec3& v1);
-		friend static __device__ vec3 operator/(vec3& v1, float e);
-		friend static __device__ vec3 operator-(float e, vec3& v1);
+		friend static __device__ vec3 operator*(const vec3& v1, const  vec3& v2);
+		friend static __device__ vec3 operator-(const vec3& v1, const  vec3& v2);
+		friend static __device__ vec3 operator+(const vec3& v1, const  float e);
+		friend static __device__ vec3 operator*(const vec3& v1, const  float e);
+		friend static __device__ vec3 operator*(float e, const  vec3& v1);
+		friend static __device__ vec3 operator/(const vec3& v1, float e);
+		friend static __device__ vec3 operator-(float e, const vec3& v1);
 	};
 
 	class vec4
@@ -77,9 +78,9 @@ namespace glmcu
 
 		float e[4];
 
-		friend static __device__ vec4 operator*(vec4& v1, vec4& v2);
-		friend static __device__ vec4 operator+(vec4& v1, vec4& v2);
-		friend static __device__ vec4 operator/(vec4& v1, float v);
+		friend static __device__ vec4 operator*(const vec4& v1,const vec4& v2);
+		friend static __device__ vec4 operator+(const vec4& v1,const vec4& v2);
+		friend static __device__ vec4 operator/(const vec4& v1, float v);
 	};
 
 	class mat4
@@ -93,7 +94,7 @@ namespace glmcu
 
 		vec4 e[4];
 
-		friend static __device__ vec4 operator*(mat4& m, vec4& v);
+		friend static __device__ vec4 operator*(const mat4& m,const vec4& v);
 	};
 
 	static __device__ vec3 normalize(vec3& v)
@@ -103,72 +104,72 @@ namespace glmcu
 		return vec3{ v[0] * k,v[1] * k,v[2] * k };
 	}
 
-	__device__ static vec2 operator*(vec2& v1, float v)
+	__device__ static vec2 operator*(const vec2& v1, float v)
 	{
 		return vec2(v1[0] * v, v1[1] * v);
 	}
 
-	__device__ static vec2 operator-(vec2& v1, float v)
+	__device__ static vec2 operator-(const vec2& v1, float v)
 	{
 		return vec2(v1[0] - v, v1[1] - v);
 	}
 
-	__device__ static vec3 operator+(vec3& v1, vec3& v2)
+	__device__ static vec3 operator+(const vec3& v1, const  vec3& v2)
 	{
 		return vec3(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]);
 	}
 
-	__device__ static vec3 operator*(vec3& v1, vec3& v2)
+	__device__ static vec3 operator*(const vec3& v1, const vec3& v2)
 	{
 		return vec3(v1[0] * v2[0], v1[1] * v2[1], v1[2] * v2[2]);
 	}
 
-	__device__ static vec3 operator-(vec3& v1, vec3& v2)
+	__device__ static vec3 operator-(const vec3& v1, const vec3& v2)
 	{
 		return vec3(v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]);
 	}
 
-	__device__ static vec3 operator+(vec3& v1, float e)
+	__device__ static vec3 operator+(const vec3& v1, float e)
 	{
 		return vec3(v1[0] + e, v1[1] + e, v1[2] + e);
 	}
 
-	__device__ static vec3 operator*(vec3& v1, float e)
+	__device__ static vec3 operator*(const vec3& v1, float e)
 	{
 		return vec3(v1[0] * e, v1[1] * e, v1[2] * e);
 	}
 
-	__device__ static vec3 operator*(float e, vec3& v1)
+	__device__ static vec3 operator*(float e, const vec3& v1)
 	{
 		return vec3(e * v1[0], e * v1[1], e * v1[2]);
 	}
 
-	__device__ static vec3 operator/(vec3& v1, float e)
+	__device__ static vec3 operator/(const vec3& v1, float e)
 	{
 		return vec3(v1[0] / e, v1[1] / e, v1[2] / e);
 	}
 
-	__device__ static vec3 operator-(float e, vec3& v1)
+	__device__ static vec3 operator-(float e, const vec3& v1)
 	{
 		return vec3(e - v1[0], e - v1[1], e - v1[2]);
 	}
 
-	__device__ static vec4 operator+(vec4& v1, vec4& v2)
+	__device__ static vec4 operator+(const vec4& v1, const vec4& v2)
 	{
 		return vec4(v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2], v1[3] + v2[3]);
 	}
 
-	__device__ static vec4 operator*(vec4& v1, vec4& v2)
+	__device__ static vec4 operator*(const vec4& v1, const vec4& v2)
 	{
 		return vec4(v1[0] * v2[0], v1[1] * v2[1], v1[2] * v2[2], v1[3] * v2[3]);
 	}
 
-	__device__ static vec4 operator/(vec4& v1, float e)
+	__device__ static vec4 operator/(const vec4& v1, float e)
 	{
 		return vec4(v1[0] / e, v1[1] / e, v1[2] / e, v1[3] / e);
 	}
 
-	__device__ static vec4 operator*(mat4& m, vec4& v)
+	__device__ static vec4 operator*(const mat4& m, const vec4& v)
 	{
 		return vec4
 		{
@@ -179,15 +180,15 @@ namespace glmcu
 		};
 	}
 
-	__device__ static float dot(vec3& v1, vec3& v2)
+	__device__ static float dot(const vec3& v1, const vec3& v2)
 	{
 		return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 	}
 
-	__device__ static vec4 clamp(vec4& a, vec4& min, vec4& max)
+	__device__ static vec3 clamp(const vec3& a, const vec3& min, const vec3& max)
 	{
-		vec4 re;
-		for (int i = 0; i < 4; i++)
+		vec3 re;
+		for (int i = 0; i < 3; i++)
 		{
 			if (a[i] < min[i])
 				re[i] = min[i];
@@ -199,8 +200,14 @@ namespace glmcu
 		return re;
 	}
 
-	__device__ static vec3 reflect(vec3& in, vec3& n)
+	__device__ static vec3 reflect(const vec3& in, const vec3& n)
 	{
 		return in - 2.0f * dot(in, n) * n;
+	}
+
+	__host__ __device__ inline vec3 cross(const vec3& v1, const vec3& v2) {
+		return vec3((v1.e[1] * v2.e[2] - v1.e[2] * v2.e[1]),
+			(-(v1.e[0] * v2.e[2] - v1.e[2] * v2.e[0])),
+			(v1.e[0] * v2.e[1] - v1.e[1] * v2.e[0]));
 	}
 }

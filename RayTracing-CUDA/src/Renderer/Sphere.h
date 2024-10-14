@@ -16,7 +16,7 @@ namespace RayTracing
 		__device__ Sphere(glmcu::vec3& position, float radius, int index)
 			:m_Position(position), m_Radius(radius), m_Index(index) {};
 
-		__device__ bool IsHit(Ray& ray, HitData& hitData) override;
+		__device__ bool IsHit(Ray& ray, HitData& hitData, float cloest) override;
 		__host__ __device__ virtual int GetIndex() override { return m_Index; }
 	private:
 		glmcu::vec3 m_Position{ 0.0f };
@@ -24,7 +24,7 @@ namespace RayTracing
 		int m_Index;
 	};
 
-	__device__ bool Sphere::IsHit(Ray& ray, HitData& hitData)
+	__device__ bool Sphere::IsHit(Ray& ray, HitData& hitData, float cloest)
 	{
 		glmcu::vec3 oc = ray.origin - m_Position;
 
@@ -48,11 +48,11 @@ namespace RayTracing
 		else
 		{
 			float t = (-b2 - sqrt(discriminant)) / a;
-			if (t < 0)
+			if (t < 0 || t > cloest)
 				return false;
 			glmcu::vec3 hitPosition = ray.origin + ray.direction * t;
 			glmcu::vec3 nor = hitPosition - m_Position;
-			glmcu::vec3 normal = normalizeS(nor);
+			glmcu::vec3 normal = nor / m_Radius;
 
 			hitData.hitPosition = hitPosition;
 			hitData.normal = normal;
