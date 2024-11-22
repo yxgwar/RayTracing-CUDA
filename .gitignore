@@ -430,6 +430,6 @@ FodyWeavers.xsd
 *.out
 *.app
 
-*.png
+
 .vs/
 x64/
